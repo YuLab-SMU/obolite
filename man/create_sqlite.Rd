@@ -4,7 +4,7 @@
 \alias{create_sqlite}
 \title{create_sqlite}
 \usage{
-create_sqlite(obofile, dbfile, name = "", date = "", url = "")
+create_sqlite(obofile, dbfile, name = "", date = "", url = "", ont2gene = NULL)
 }
 \arguments{
 \item{obofile}{ontology store in an obo file}
@@ -16,6 +16,8 @@ create_sqlite(obofile, dbfile, name = "", date = "", url = "")
 \item{date}{release date of the ontology}
 
 \item{url}{reference url of the ontology}
+
+\item{ont2gene}{ontology ID to gene ID mapping (optional)}
 }
 \description{
 create sqlite file from an obo file

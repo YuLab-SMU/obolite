@@ -8,14 +8,22 @@
 ##' @param name name of the ontology
 ##' @param date release date of the ontology
 ##' @param url reference url of the ontology
+##' @param ont2gene ontology ID to gene ID mapping (optional)
 ##' @return NULL
-##' @importFrom DBI dbDriver
+##' @importFrom RSQLite dbDriver
 ##' @importFrom DBI dbConnect
 ##' @importFrom DBI dbDisconnect
 ##' @importFrom stats setNames
 ##' @export
 ##' @author Guangchuang Yu \url{https://yulab-smu.top}
-create_sqlite <- function(obofile, dbfile, name="", date="", url="") {
+create_sqlite <- function(
+    obofile, 
+    dbfile, 
+    name="", 
+    date="", 
+    url="", 
+    ont2gene = NULL) {
+
     drv <- dbDriver("SQLite")
     db <- dbConnect(drv, dbname=dbfile)
 
@@ -37,6 +45,13 @@ create_sqlite <- function(obofile, dbfile, name="", date="", url="") {
     offspring <- setNames(rev_rel(ancestor), c("id", "offspring"))
     write_db_table_(db, "offspring", offspring)
 
+    if (!is.null(ont2gene)) {
+        write_db_table_(db, "ont2gene", ont2gene)
+
+        gene2allont <- build_gene2allont(ont2gene, ancestor)
+        write_db_table_(db, "gene2allont", gene2allont)
+    }
+
     metadata <- data.frame(
         name = c("DBSCHEMA", "DBSCHEMAVERSION", "SOURCENAME",
             "SOURCURL", "SOURCEDATE", "Db type"),
@@ -56,7 +71,7 @@ create_sqlite <- function(obofile, dbfile, name="", date="", url="") {
     write_db_table_(db, "map_counts", map.counts)
 
     dbDisconnect(db)
-    return(NULL)
+    invisible(NULL)
 }
 
 ##' @importFrom utils stack
@@ -93,5 +108,26 @@ write_db_table_ <- function(conn, name, value) {
 rev_rel <- function(rel) {
     x <- rel[, c(2,1)]
     x[order(x[,1]), ]
+}
+
+
+build_gene2allont <- function(ont2gene, ancestor) {
+    eg2ont <- split(as.character(ont2gene[,1]), as.character(ont2gene[,2]))
+    # anc <- GOSemSim:::getAncestors(ontology)
+    anc <- split(ancestor[,2], ancestor[,1])
+    eg2allont <- lapply(eg2ont,
+                       function(i) {
+                           ans <- unlist(anc[i])
+                           ans <- ans[ !is.na(ans) ]
+                           ans <- c(i, ans)
+                           ans <- unique(ans)
+                           return(ans)
+                       }) 
+
+    res <- stack(eg2allont)
+    res <- res[, c("ind", "values")] |>
+        setNames(c("gene", "id"))
+    
+    return(res)
 }
 

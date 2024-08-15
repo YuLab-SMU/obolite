@@ -6,6 +6,7 @@ Description: Parse 'obo' file and create 'sqlite' file to store the information.
 License: Artistic-2.0
 Imports:
     DBI,
+    RSQLite,
     stats,
     utils,
     yulab.utils
