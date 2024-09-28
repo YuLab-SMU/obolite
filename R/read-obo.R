@@ -45,6 +45,7 @@ extract_obo_item <- function(item) {
     if (!is.na(useless)) return(NULL)
 
     id <- get_obo_info(item, "^id:")
+    level <- get_obo_info(item, "^namespace:")
     name <- get_obo_info(item, "^name:")
     alt_id <- get_obo_info(item, "^alt_id:")
     synonym <- get_obo_info(item, "^synonym:")
@@ -55,7 +56,7 @@ extract_obo_item <- function(item) {
 
     isa <- get_obo_info(item, '^is_a:')
     isa <- sub("\\s*!.*", "", isa)
-    res <- list(do=c(id=id, name=name, def=def),
+    res <- list(do=c(id=id, name=name, def=def, level = level),
         alias = data.frame(id = id, alias = alt_id),
         synonym = data.frame(id = id, synonym = synonym),
         relationship = data.frame(id=id, parent=isa))
@@ -69,7 +70,3 @@ get_obo_info <- function(item, pattern) {
             sub(pattern, "", item[i])
     )
 }
-
-
-
-
